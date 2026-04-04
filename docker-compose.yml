@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./static:/static
+    environment:
+      - DJANGO_SECRET_KEY=troque-em-producao-use-uma-chave-longa-e-aleatoria
+      - DEBUG=True
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
