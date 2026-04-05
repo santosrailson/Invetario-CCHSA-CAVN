@@ -234,6 +234,14 @@ class Site(models.Model):
     certificado_expiracao = models.DateField(
         "Validade do Certificado SSL", null=True, blank=True
     )
+    usuario = models.CharField(
+        "Usuário", max_length=150, blank=True,
+        help_text="Usuário para acesso ao site (opcional)"
+    )
+    senha = models.CharField(
+        "Senha", max_length=255, blank=True,
+        help_text="Senha para acesso ao site (opcional)"
+    )
     observacoes = models.TextField("Observações", blank=True)
     tags = models.CharField("Tags", max_length=255, blank=True)
     ativo = models.BooleanField("Ativo", default=True)

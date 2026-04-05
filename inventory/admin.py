@@ -86,6 +86,14 @@ class ComputadorForm(forms.ModelForm):
         fields = "__all__"
 
 
+class SiteForm(forms.ModelForm):
+    senha = SenhaField(label="Senha", help_text="Senha para acesso ao site (opcional)")
+
+    class Meta:
+        model = Site
+        fields = "__all__"
+
+
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _ip_link(ip, protocolo="http"):
@@ -304,7 +312,7 @@ class ComputadorAdmin(ModelAdmin, ImportExportModelAdmin):
 class EmailInstitucionalAdmin(ModelAdmin, ImportExportModelAdmin):
     form = EmailInstitucionalForm
     list_display = [
-        "email_link", "usuario", "departamento",
+        "endereco", "usuario", "departamento",
         "servidor_email", "cota_mb", "ativo",
     ]
     list_filter = ["ativo", "departamento", "servidor_email"]
@@ -340,6 +348,7 @@ class EmailInstitucionalAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(Site)
 class SiteAdmin(ModelAdmin, ImportExportModelAdmin):
+    form = SiteForm
     list_display = [
         "nome", "url_link", "ip_servidor", "responsavel",
         "certificado_expiracao", "ativo",
@@ -354,6 +363,11 @@ class SiteAdmin(ModelAdmin, ImportExportModelAdmin):
         }),
         ("Responsabilidade", {
             "fields": ["responsavel", "certificado_expiracao"],
+        }),
+        ("Credenciais", {
+            "fields": ["usuario", "senha"],
+            "classes": ["collapse"],
+            "description": "Preencha apenas se o site exigir autenticação.",
         }),
         ("Status", {"fields": ["ativo"]}),
         ("Observações", {
