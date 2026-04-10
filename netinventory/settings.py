@@ -9,6 +9,12 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["*"]
 
+# Origens confiáveis para CSRF (necessário para proxies/tunnels como Cloudflare)
+_extra_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.trycloudflare.com",
+] + [o.strip() for o in _extra_origins.split(",") if o.strip()]
+
 INSTALLED_APPS = [
     # Unfold deve vir antes do django.contrib.admin
     "unfold",
@@ -180,6 +186,11 @@ UNFOLD = {
                 "title": "Monitoramento",
                 "separator": True,
                 "items": [
+                    {
+                        "title": "Varredura de Rede",
+                        "icon": "radar",
+                        "link": "/inventory/varredura/",
+                    },
                     {
                         "title": "Histórico de Pings",
                         "icon": "timeline",

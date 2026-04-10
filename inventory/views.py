@@ -2,7 +2,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_GET, require_POST
 
 from .models import (
     Switch, Roteador, AccessPoint, Computador,
@@ -95,6 +96,57 @@ def dashboard(request):
         "offline_hoje": offline_hoje,
     }
     return render(request, "admin/dashboard.html", context)
+
+
+# ─── Varredura de Rede ───────────────────────────────────────────────────────
+
+@staff_member_required
+def varredura_rede(request):
+    """
+    GET  → formulário de varredura
+    POST → executa varredura, salva resultados e retorna JSON
+    """
+    if request.method == "POST":
+        cidr = request.POST.get("cidr", "").strip()
+        if not cidr:
+            return JsonResponse({"erro": "Informe uma faixa de IP válida."}, status=400)
+
+        try:
+            from .scanner import scan_network
+            resultados = scan_network(cidr)
+
+            for r in resultados:
+                # Atualiza o registro existente ou cria um novo —
+                # evita duplicatas: cada IP de varredura tem apenas uma linha.
+                HistoricoPing.objects.filter(
+                    dispositivo_tipo="varredura",
+                    ip=r["ip"],
+                ).delete()
+                HistoricoPing.objects.create(
+                    dispositivo_tipo="varredura",
+                    dispositivo_id=None,
+                    ip=r["ip"],
+                    status=r["status"],
+                    latencia_ms=r["latencia_ms"],
+                    mac_address=r["mac_address"],
+                    fabricante_mac=r["fabricante"],
+                )
+
+            return JsonResponse({
+                "cidr": cidr,
+                "total": len(resultados),
+                "resultados": resultados,
+            })
+        except Exception as exc:
+            import traceback
+            return JsonResponse(
+                {"erro": str(exc), "detalhe": traceback.format_exc()},
+                status=500,
+            )
+
+    return render(request, "admin/inventory/varredura.html", {
+        "title": "Varredura de Rede",
+    })
 
 
 # ─── Relatório Geral PDF ──────────────────────────────────────────────────────

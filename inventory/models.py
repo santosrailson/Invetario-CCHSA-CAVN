@@ -295,10 +295,12 @@ class HistoricoPing(models.Model):
     ]
 
     dispositivo_tipo = models.CharField("Tipo de Dispositivo", max_length=50)
-    dispositivo_id = models.PositiveIntegerField("ID do Dispositivo")
+    dispositivo_id = models.PositiveIntegerField("ID do Dispositivo", null=True, blank=True)
     ip = models.GenericIPAddressField("Endereço IP", protocol="both")
     status = models.CharField("Status", max_length=10, choices=STATUS_CHOICES)
     latencia_ms = models.FloatField("Latência (ms)", null=True, blank=True)
+    mac_address = models.CharField("MAC Address", max_length=17, blank=True, default="")
+    fabricante_mac = models.CharField("Fabricante (MAC)", max_length=255, blank=True, default="")
     timestamp = models.DateTimeField("Timestamp", auto_now_add=True)
 
     class Meta:

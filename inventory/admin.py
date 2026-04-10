@@ -421,14 +421,14 @@ class SubredeAdmin(ModelAdmin, ImportExportModelAdmin):
 @admin.register(HistoricoPing)
 class HistoricoPingAdmin(ModelAdmin):
     list_display = [
-        "ip", "dispositivo_tipo", "dispositivo_id",
-        "status_display", "latencia_ms", "timestamp",
+        "ip", "dispositivo_tipo", "status_display",
+        "latencia_ms", "mac_address", "fabricante_mac", "timestamp",
     ]
     list_filter = ["status", "dispositivo_tipo"]
-    search_fields = ["ip", "dispositivo_tipo"]
+    search_fields = ["ip", "dispositivo_tipo", "mac_address", "fabricante_mac"]
     readonly_fields = [
         "ip", "dispositivo_tipo", "dispositivo_id",
-        "status", "latencia_ms", "timestamp",
+        "status", "latencia_ms", "mac_address", "fabricante_mac", "timestamp",
     ]
 
     def has_add_permission(self, request):

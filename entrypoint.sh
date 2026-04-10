@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-echo "==> Criando migrations do app inventory..."
-python manage.py makemigrations inventory --noinput
-
 echo "==> Aplicando migrations..."
 python manage.py migrate --noinput
 
@@ -25,6 +22,6 @@ echo "==> Iniciando servidor Gunicorn..."
 exec gunicorn netinventory.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 2 \
-    --timeout 120 \
+    --timeout 300 \
     --access-logfile - \
     --error-logfile -

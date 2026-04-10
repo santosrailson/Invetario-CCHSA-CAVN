@@ -11,6 +11,9 @@ services:
     environment:
       - DJANGO_SECRET_KEY=troque-em-producao-use-uma-chave-longa-e-aleatoria
       - DEBUG=True
+      # URL do agente nmap local (nmap_agent.py rodando no host Windows)
+      - NMAP_AGENT_URL=http://host.docker.internal:9998/scan
     restart: unless-stopped
     cap_add:
       - NET_RAW
+      - NET_ADMIN

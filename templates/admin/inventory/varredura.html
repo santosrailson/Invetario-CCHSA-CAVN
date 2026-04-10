@@ -1,0 +1,151 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Varredura de Rede — NetInventory{% endblock %}
+
+{% block content_title %}
+<h1 style="margin-bottom:.25rem;">Varredura de Rede</h1>
+<p style="color:#6b7280;margin:0;">Descubra dispositivos ativos, MAC address e fabricante em uma faixa de IP</p>
+{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ni-section h2 {
+    font-size: 1.05rem; font-weight: 600;
+    color: #0369a1;
+    border-bottom: 2px solid #bae6fd;
+    padding-bottom: .4rem; margin-bottom: 1rem;
+  }
+  .dark .ni-section h2 { color: #38bdf8; border-bottom-color: #1e3a5f; }
+</style>
+
+<!-- Formulário -->
+<div class="ni-section" style="margin-bottom:2rem;">
+  <h2>🔍 Configuração da Varredura</h2>
+  <form id="vr-form">
+    {% csrf_token %}
+    <div class="flex items-center gap-3" style="flex-wrap:wrap;">
+      <div>
+        <label for="cidr"
+          class="text-sm font-semibold"
+          style="display:block;margin-bottom:.3rem;">
+          Faixa de IP (CIDR)
+        </label>
+        <input type="text" id="cidr" name="cidr"
+          placeholder="ex: 10.10.100.0/24" required
+          class="border rounded-md px-3 py-2 text-sm"
+          style="width:260px;">
+      </div>
+      <button type="submit" id="vr-btn"
+        class="flex items-center gap-2 rounded-md px-4 py-2 font-semibold text-sm bg-primary-600 text-white"
+        style="margin-top:1.4rem;border:none;cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">radar</span>
+        Iniciar varredura
+      </button>
+    </div>
+  </form>
+
+  <p id="vr-status" class="text-sm font-medium dark:text-gray-300" style="margin-top:.85rem;display:none;">
+    <span class="material-symbols-outlined"
+      style="vertical-align:middle;font-size:1rem;animation:spin 1s linear infinite;">
+      progress_activity
+    </span>
+    Varrendo a rede, aguarde…
+  </p>
+  <p id="vr-error" class="text-sm" style="margin-top:.75rem;color:#dc2626;display:none;"></p>
+</div>
+
+<!-- Resultados -->
+<div id="vr-results" style="display:none;">
+  <div class="ni-section" style="margin-bottom:2rem;">
+    <h2>📋 Resultados</h2>
+    <p id="vr-summary" class="text-sm dark:text-gray-300" style="margin-bottom:.75rem;"></p>
+
+    <div class="overflow-auto">
+      <table class="w-full text-sm" style="border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th class="bg-primary-600 text-white px-3 py-2 font-semibold" style="text-align:left;">IP</th>
+            <th class="bg-primary-600 text-white px-3 py-2 font-semibold" style="text-align:left;">Status</th>
+            <th class="bg-primary-600 text-white px-3 py-2 font-semibold" style="text-align:left;">Latência (ms)</th>
+            <th class="bg-primary-600 text-white px-3 py-2 font-semibold" style="text-align:left;">MAC Address</th>
+            <th class="bg-primary-600 text-white px-3 py-2 font-semibold" style="text-align:left;">Fabricante</th>
+          </tr>
+        </thead>
+        <tbody id="vr-tbody"></tbody>
+      </table>
+    </div>
+
+    <p class="text-sm" style="margin-top:.6rem;color:#6b7280;">
+      Resultados salvos automaticamente no
+      <a href="/admin/inventory/historicoping/" class="dark:text-primary-400" style="color:#0369a1;">Histórico de Pings</a>.
+    </p>
+  </div>
+</div>
+
+<script>
+const ROW_CLASSES = "border-b border-gray-200 dark:border-gray-700";
+const TD_CLASSES  = "px-3 py-2 dark:text-gray-300";
+
+document.getElementById('vr-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const cidr    = document.getElementById('cidr').value.trim();
+  const btn     = document.getElementById('vr-btn');
+  const status  = document.getElementById('vr-status');
+  const errDiv  = document.getElementById('vr-error');
+  const results = document.getElementById('vr-results');
+
+  btn.disabled  = true;
+  btn.style.opacity = '.6';
+  status.style.display = 'block';
+  errDiv.style.display = 'none';
+  results.style.display = 'none';
+
+  try {
+    const resp = await fetch('{% url "inventory:varredura_rede" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: new URLSearchParams({ cidr }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.erro || 'Erro desconhecido na varredura.');
+
+    const online = data.resultados.filter(r => r.status === 'ONLINE').length;
+    document.getElementById('vr-summary').innerHTML =
+      `<strong>${data.total}</strong> host(s) encontrado(s) em <code>${data.cidr}</code> — ` +
+      `<span style="color:#16a34a;font-weight:600;">${online} online</span>, ` +
+      `<span style="color:#dc2626;font-weight:600;">${data.total - online} offline</span>`;
+
+    const tbody = document.getElementById('vr-tbody');
+    tbody.innerHTML = '';
+    for (const r of data.resultados) {
+      const badge = r.status === 'ONLINE'
+        ? '<span style="color:#16a34a;font-weight:600;">🟢 Online</span>'
+        : '<span style="color:#dc2626;font-weight:600;">🔴 Offline</span>';
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr class="${ROW_CLASSES}">
+          <td class="${TD_CLASSES}"><code>${r.ip}</code></td>
+          <td class="${TD_CLASSES}">${badge}</td>
+          <td class="${TD_CLASSES}">${r.latencia_ms != null ? r.latencia_ms + ' ms' : '—'}</td>
+          <td class="${TD_CLASSES}">${r.mac_address || '—'}</td>
+          <td class="${TD_CLASSES}">${r.fabricante  || '—'}</td>
+        </tr>`);
+    }
+    results.style.display = 'block';
+
+  } catch (err) {
+    errDiv.textContent = 'Erro: ' + err.message;
+    errDiv.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    status.style.display = 'none';
+  }
+});
+</script>
+{% endblock %}

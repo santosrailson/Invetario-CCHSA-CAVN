@@ -36,3 +36,4 @@ venv/
 
 # Arquivos estáticos coletados (gerados pelo collectstatic)
 staticfiles/
+static/
