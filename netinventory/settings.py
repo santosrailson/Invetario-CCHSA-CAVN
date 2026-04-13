@@ -3,6 +3,20 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _default_sqlite_path() -> Path:
+    # Inside the container, /data is mounted as a volume.
+    if Path("/data").exists():
+        return Path("/data/db.sqlite3")
+    return BASE_DIR / "data" / "db.sqlite3"
+
+
+def _default_static_root() -> Path:
+    # Keep /static for containerized deploy, use local folder otherwise.
+    if Path("/static").exists():
+        return Path("/static")
+    return BASE_DIR / "staticfiles"
+
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-key-insegura-apenas-local")
 
 DEBUG = os.environ.get("DEBUG", "True") == "True"
@@ -69,7 +83,7 @@ WSGI_APPLICATION = "netinventory.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "/data/db.sqlite3",
+        "NAME": os.environ.get("SQLITE_PATH", str(_default_sqlite_path())),
     }
 }
 
@@ -86,7 +100,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = "/static"
+STATIC_ROOT = os.environ.get("STATIC_ROOT", str(_default_static_root()))
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
