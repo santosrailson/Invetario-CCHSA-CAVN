@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
@@ -7,8 +9,10 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .models import (
     Switch, Roteador, AccessPoint, Computador,
-    EmailInstitucional, Site, Subrede, HistoricoPing,
+    EmailInstitucional, Site, Subrede, HistoricoPing, Fabricante,
 )
+
+logger = logging.getLogger(__name__)
 
 try:
     import ping3
@@ -113,8 +117,9 @@ def varredura_rede(request):
 
         try:
             from .scanner import scan_network
-            resultados = scan_network(cidr)
+            resultados, diagnostico = scan_network(cidr)
 
+            novos_fabricantes = 0
             for r in resultados:
                 # Atualiza o registro existente ou cria um novo —
                 # evita duplicatas: cada IP de varredura tem apenas uma linha.
@@ -132,10 +137,28 @@ def varredura_rede(request):
                     fabricante_mac=r["fabricante"],
                 )
 
+                # Cadastra o fabricante automaticamente se ainda não existir
+                nome_fabricante = (r.get("fabricante") or "").strip()[:100]
+                if nome_fabricante:
+                    try:
+                        _, criado = Fabricante.objects.get_or_create(nome=nome_fabricante)
+                        if criado:
+                            novos_fabricantes += 1
+                    except Exception:
+                        logger.exception("Erro ao cadastrar fabricante: %r", nome_fabricante)
+
             return JsonResponse({
                 "cidr": cidr,
                 "total": len(resultados),
+                "novos_fabricantes": novos_fabricantes,
                 "resultados": resultados,
+                "diagnostico": diagnostico,
+                "aviso": (
+                    "MAC e fabricante podem ficar vazios quando o nmap_agent local não está ativo. "
+                    "No Windows host, execute: python nmap_agent.py"
+                    if diagnostico.get("origem") != "host_agent"
+                    else ""
+                ),
             })
         except Exception as exc:
             import traceback

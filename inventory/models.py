@@ -313,3 +313,64 @@ class HistoricoPing(models.Model):
             f"{self.ip} — {self.status} "
             f"({self.timestamp.strftime('%d/%m/%Y %H:%M')})"
         )
+ 
+ 
+class Impressora(models.Model):
+    TIPO_CHOICES = [
+        ("LASER", "Laser"),
+        ("JATO_TINTA", "Jato de Tinta"),
+        ("MULTIFUNCIONAL", "Multifuncional"),
+        ("MATRICIAL", "Matricial"),
+        ("TERMICA", "Térmica"),
+        ("OUTRO", "Outro"),
+    ]
+
+    CONEXAO_CHOICES = [
+        ("USB", "USB"),
+        ("REDE", "Rede (Ethernet)"),
+        ("WIFI", "Wi-Fi"),
+        ("USB_REDE", "USB + Rede"),
+        ("PARALELA", "Paralela"),
+        ("OUTRA", "Outra"),
+    ]
+
+    STATUS_CHOICES = [
+        ("ATIVA", "Ativa"),
+        ("MANUTENCAO", "Em Manutenção"),
+        ("DESATIVADA", "Desativada"),
+        ("AGUARDANDO", "Aguardando Peças"),
+    ]
+
+    nome = models.CharField("Nome", max_length=100)
+    ip = models.GenericIPAddressField("Endereço IP", protocol="both", blank=True, null=True)
+    modelo = models.CharField("Modelo", max_length=100)
+    fabricante = models.ForeignKey(
+        Fabricante, on_delete=models.PROTECT, verbose_name="Fabricante"
+    )
+    numero_serie = models.CharField("Número de Série", max_length=100, blank=True)
+    tipo = models.CharField("Tipo", max_length=20, choices=TIPO_CHOICES, default="LASER")
+    conexao = models.CharField("Conexão", max_length=20, choices=CONEXAO_CHOICES, default="USB")
+    localizacao = models.ForeignKey(
+        Localizacao, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name="Localização"
+    )
+    departamento = models.CharField("Departamento", max_length=100, blank=True)
+    responsavel = models.CharField("Responsável", max_length=100, blank=True)
+    data_aquisicao = models.DateField("Data de Aquisição", null=True, blank=True)
+    data_garantia = models.DateField("Data Fim Garantia", null=True, blank=True)
+    contador_paginas = models.PositiveIntegerField("Contador de Páginas", default=0)
+    status = models.CharField("Status", max_length=20, choices=STATUS_CHOICES, default="ATIVA")
+    observacoes = models.TextField("Observações", blank=True)
+    tags = models.CharField("Tags", max_length=255, blank=True,
+                           help_text="Separadas por vírgula")
+    ativo = models.BooleanField("Ativo", default=True)
+    criado_em = models.DateTimeField("Criado em", auto_now_add=True)
+    atualizado_em = models.DateTimeField("Atualizado em", auto_now=True)
+
+    class Meta:
+        verbose_name = "Impressora"
+        verbose_name_plural = "Impressoras"
+        ordering = ["nome"]
+
+    def __str__(self):
+        return f"{self.nome} ({self.modelo})"

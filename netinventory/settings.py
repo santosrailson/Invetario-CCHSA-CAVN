@@ -114,6 +114,9 @@ UNFOLD = {
     "SITE_SYMBOL": "router",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
+    "STYLES": [
+        "admin/netinventory-editorial.css",
+    ],
     "COLORS": {
         "primary": {
             "50": "240 249 255",

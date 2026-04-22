@@ -8,7 +8,7 @@ from import_export.admin import ImportExportModelAdmin
 from .models import (
     Fabricante, Localizacao, Switch, PortaSwitch,
     Roteador, AccessPoint, Computador, EmailInstitucional,
-    Site, Subrede, HistoricoPing,
+    Site, Subrede, HistoricoPing, Impressora,
 )
 from .actions import pingar_dispositivos, exportar_csv, gerar_pdf, compartilhar_whatsapp
 
@@ -442,3 +442,28 @@ class HistoricoPingAdmin(ModelAdmin):
         if obj.status == "ONLINE":
             return format_html('<span style="color:green">🟢 Online</span>')
         return format_html('<span style="color:red">🔴 Offline</span>')
+
+
+# ─── Impressora ───────────────────────────────────────────────────────────────
+
+@admin.register(Impressora)
+class ImpressoraAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ["nome", "modelo", "fabricante", "tipo", "conexao", "status", "localizacao", "ativo"]
+    list_filter = ["tipo", "conexao", "status", "fabricante", "ativo"]
+    search_fields = ["nome", "modelo", "numero_serie", "ip", "departamento", "responsavel"]
+    ordering = ["nome"]
+
+    fieldsets = [
+        ("Identificação", {
+            "fields": ["nome", "modelo", "fabricante", "numero_serie", "tipo", "conexao"],
+        }),
+        ("Localização e Rede", {
+            "fields": ["ip", "localizacao", "departamento", "responsavel"],
+        }),
+        ("Datas e Status", {
+            "fields": ["data_aquisicao", "data_garantia", "contador_paginas", "status", "ativo"],
+        }),
+        ("Outros", {
+            "fields": ["observacoes", "tags"],
+        }),
+    ]

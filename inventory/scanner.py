@@ -25,7 +25,7 @@ _HOST_AGENT_TIMEOUT = 180  # segundos — suficiente para uma /24
 _MAX_PING_WORKERS = 50
 
 
-def scan_network(cidr: str) -> list[dict]:
+def scan_network(cidr: str) -> tuple[list[dict], dict]:
     """
     Varre a faixa CIDR e retorna lista de hosts.
 
@@ -36,11 +36,18 @@ def scan_network(cidr: str) -> list[dict]:
         mac_address str        - MAC address (vazio se indisponível)
         fabricante  str        - fabricante via OUI (vazio se indisponível)
     """
-    # Tenta agente local primeiro (tem acesso L2 → retorna MAC)
-    results = _scan_via_host_agent(cidr)
+    diagnostico = {
+        "origem": "host_agent",
+        "agent_error": None,
+    }
+
+    # Tenta agente local primeiro (tem acesso L2 -> retorna MAC)
+    results, agent_error = _scan_via_host_agent(cidr)
 
     if results is None:
         logger.info("nmap_agent não disponível, usando nmap interno (sem MAC no Windows).")
+        diagnostico["origem"] = "container_nmap"
+        diagnostico["agent_error"] = agent_error
         results = _scan_in_container(cidr)
 
     # Mede latência de todos os hosts ONLINE em paralelo
@@ -50,12 +57,16 @@ def scan_network(cidr: str) -> list[dict]:
         for r in online:
             r["latencia_ms"] = latencias.get(r["ip"])
 
-    return sorted(results, key=lambda r: _ip_sort_key(r["ip"]))
+    results = sorted(results, key=lambda r: _ip_sort_key(r["ip"]))
+    diagnostico["mac_disponivel"] = any((r.get("mac_address") or "").strip() for r in results)
+    diagnostico["fabricante_disponivel"] = any((r.get("fabricante") or "").strip() for r in results)
+
+    return results, diagnostico
 
 
 # ── estratégia 1: agente local no Windows ────────────────────────────────────
 
-def _scan_via_host_agent(cidr: str) -> list[dict] | None:
+def _scan_via_host_agent(cidr: str) -> tuple[list[dict] | None, str | None]:
     """
     Chama o nmap_agent.py rodando no host via host.docker.internal:9998.
     Retorna lista de resultados, ou None se o agente não estiver disponível.
@@ -71,11 +82,11 @@ def _scan_via_host_agent(cidr: str) -> list[dict] | None:
             r.setdefault("latencia_ms", None)
             r.setdefault("mac_address", "")
             r.setdefault("fabricante", "")
-        return resultados
+        return resultados, None
 
     except Exception as exc:
         logger.debug("nmap_agent indisponível: %s", exc)
-        return None
+        return None, str(exc)
 
 
 # ── estratégia 2: nmap dentro do container ───────────────────────────────────

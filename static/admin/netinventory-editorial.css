@@ -1,0 +1,277 @@
+:root {
+  --ni-surface: #f6fafe;
+  --ni-section: #f0f4f8;
+  --ni-card: #ffffff;
+  --ni-card-2: #e4e9ed;
+  --ni-primary: #003461;
+  --ni-primary-container: #004b87;
+  --ni-tertiary: #003c27;
+  --ni-tertiary-soft: #4edea3;
+  --ni-error: #ba1a1a;
+  --ni-text: #171c1f;
+  --ni-text-muted: #424750;
+  --ni-outline-soft: rgba(114, 119, 129, 0.15);
+  --ni-shadow: 0 18px 24px -8px rgba(23, 28, 31, 0.06);
+}
+
+html.dark {
+  --ni-surface: #12171b;
+  --ni-section: #1b232a;
+  --ni-card: #222c34;
+  --ni-card-2: #2d3740;
+  --ni-primary: #8bc1ff;
+  --ni-primary-container: #4a9df3;
+  --ni-tertiary: #7eeec1;
+  --ni-tertiary-soft: #7eeec1;
+  --ni-error: #ffb4ab;
+  --ni-text: #edf1f5;
+  --ni-text-muted: #b8c1cc;
+  --ni-outline-soft: rgba(194, 198, 209, 0.12);
+  --ni-shadow: 0 20px 28px -8px rgba(0, 0, 0, 0.35);
+}
+
+body {
+  background: linear-gradient(145deg, var(--ni-surface), var(--ni-section));
+}
+
+#content,
+.content,
+.main,
+.container,
+.module,
+.inline-group,
+fieldset,
+.results,
+#changelist,
+#changelist-form,
+.change-form,
+.dashboard,
+.object-tools,
+.actions,
+.submit-row,
+.paginator,
+#toolbar,
+#changelist-search,
+#changelist-filter,
+.grp-module {
+  border: none;
+  box-shadow: none;
+}
+
+h1,
+h2,
+h3,
+.module h2,
+#content h1 {
+  font-family: Manrope, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+label,
+th,
+td,
+.help,
+.helptext,
+small,
+p,
+li,
+a {
+  font-family: Inter, sans-serif;
+}
+
+#changelist,
+.change-list,
+#content-main,
+#content-related,
+.dashboard {
+  border-radius: 12px;
+}
+
+.change-list #changelist,
+.change-list #changelist-form,
+.change-list #content-main {
+  background: var(--ni-card);
+  border-radius: 12px;
+}
+
+.change-list .actions,
+.change-list #toolbar,
+.change-list .paginator,
+#changelist-filter {
+  background: var(--ni-section);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.change-list #toolbar,
+.change-list .actions,
+.change-list .paginator {
+  margin: 10px 0;
+}
+
+.change-list .results table,
+#result_list {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--ni-card);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.change-list .results thead th,
+#result_list thead th {
+  background: var(--ni-card-2);
+  color: var(--ni-text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 11px 12px;
+}
+
+.change-list .results tbody td,
+#result_list tbody td {
+  color: var(--ni-text);
+  padding: 10px 12px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.change-list .results tbody tr:nth-child(odd),
+#result_list tbody tr:nth-child(odd) {
+  background: var(--ni-card);
+}
+
+.change-list .results tbody tr:nth-child(even),
+#result_list tbody tr:nth-child(even) {
+  background: var(--ni-section);
+}
+
+#changelist-filter h2,
+#changelist-filter h3,
+.actions label,
+.paginator,
+.object-tools a,
+.button,
+input[type="submit"],
+input[type="button"],
+button,
+.submit-row input {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+button,
+.submit-row input,
+.object-tools a,
+.addlink,
+.changelink {
+  border: none;
+  border-radius: 7px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+button:hover,
+.submit-row input:hover,
+.object-tools a:hover,
+.addlink:hover,
+.changelink:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.button.default,
+.submit-row input.default,
+input[name="_save"],
+input[name="_continue"],
+.object-tools .addlink,
+.change-list .actions button {
+  background: linear-gradient(135deg, var(--ni-primary), var(--ni-primary-container));
+  color: #fff;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+select,
+textarea,
+.vTextField,
+.vURLField,
+.vIntegerField,
+.vLargeTextField {
+  border: none;
+  border-radius: 7px;
+  background: var(--ni-section);
+  color: var(--ni-text);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.vTextField:focus,
+.vURLField:focus,
+.vIntegerField:focus,
+.vLargeTextField:focus {
+  outline: 2px solid rgba(39, 96, 157, 0.25);
+  outline-offset: 1px;
+}
+
+.module,
+.inline-group,
+fieldset,
+.submit-row,
+.dashboard .module,
+#content-related .module,
+#content-main .module {
+  background: var(--ni-card);
+  border-radius: 10px;
+  box-shadow: var(--ni-shadow);
+}
+
+.module h2,
+.inline-group h2,
+fieldset h2,
+.dashboard .module caption {
+  background: var(--ni-card-2);
+  color: var(--ni-text-muted);
+  border-radius: 10px 10px 0 0;
+}
+
+.messagelist .success,
+.messagelist .warning,
+.messagelist .error,
+ul.messagelist li {
+  border: none;
+  border-radius: 8px;
+}
+
+.messagelist .success {
+  background: rgba(78, 222, 163, 0.18);
+  color: var(--ni-tertiary);
+}
+
+.messagelist .error {
+  background: rgba(186, 26, 26, 0.15);
+  color: var(--ni-error);
+}
+
+@media (max-width: 900px) {
+  .change-list .results table,
+  #result_list {
+    min-width: 700px;
+  }
+}

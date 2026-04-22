@@ -3,280 +3,486 @@
 
 {% block title %}Dashboard — NetInventory{% endblock %}
 
+{% block extrahead %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content_title %}
-<h1 style="margin-bottom: 0.25rem;">Dashboard</h1>
-<p style="color: #6b7280; margin: 0;">Visão geral do inventário de infraestrutura</p>
+<h1 style="margin-bottom: .2rem; font-family: 'Manrope', sans-serif; letter-spacing: -.02em;">Network Inventory</h1>
+<p style="margin: 0; color: #424750; font-family: 'Inter', sans-serif;">Visão operacional da infraestrutura em tempo real</p>
 {% endblock %}
 
 {% block content %}
 <style>
-  /* ── Grid ── */
-  .ni-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+  :root {
+    --ni-surface: #f6fafe;
+    --ni-section: #f0f4f8;
+    --ni-card: #ffffff;
+    --ni-card-2: #e4e9ed;
+    --ni-primary: #003461;
+    --ni-primary-container: #004b87;
+    --ni-tertiary: #003c27;
+    --ni-tertiary-soft: #4edea3;
+    --ni-error: #ba1a1a;
+    --ni-error-soft: #ffdad6;
+    --ni-text: #171c1f;
+    --ni-text-muted: #424750;
+    --ni-outline-soft: rgba(114, 119, 129, .15);
+    --ni-shadow: 0 18px 24px -8px rgba(23, 28, 31, .06);
   }
 
-  /* ── Cards: light ── */
-  .ni-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 1.2rem 1rem;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    transition: transform .15s, box-shadow .15s;
+  .dark {
+    --ni-surface: #12171b;
+    --ni-section: #1b232a;
+    --ni-card: #222c34;
+    --ni-card-2: #2d3740;
+    --ni-primary: #8bc1ff;
+    --ni-primary-container: #4a9df3;
+    --ni-tertiary-soft: #7eeec1;
+    --ni-error-soft: #4f2222;
+    --ni-text: #edf1f5;
+    --ni-text-muted: #b8c1cc;
+    --ni-outline-soft: rgba(194, 198, 209, .12);
+    --ni-shadow: 0 20px 28px -8px rgba(0, 0, 0, .35);
   }
-  .ni-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(0,0,0,.1);
+
+  .ni-board {
+    font-family: 'Inter', sans-serif;
+    color: var(--ni-text);
+    background: linear-gradient(145deg, var(--ni-surface), var(--ni-section));
+    border-radius: .75rem;
+    padding: 1.5rem;
   }
+
+  .ni-kicker {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ni-text-muted);
+  }
+
+  .ni-display {
+    margin: .3rem 0 0;
+    font: 800 2.45rem/1 'Manrope', sans-serif;
+    letter-spacing: -.02em;
+    color: var(--ni-primary);
+  }
+
+  .ni-muted { color: var(--ni-text-muted); }
+
+  .ni-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+    margin: 1.2rem 0 1.5rem;
+  }
+
+  .ni-btn,
+  .ni-btn:visited {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    border-radius: .45rem;
+    padding: .6rem .95rem;
+    text-decoration: none;
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    transition: transform .2s ease, opacity .2s ease;
+  }
+
+  .ni-btn:hover { transform: translateY(-1px); opacity: .92; }
+
+  .ni-btn-primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--ni-primary), var(--ni-primary-container));
+  }
+
+  .ni-btn-secondary {
+    color: var(--ni-text);
+    background: var(--ni-card-2);
+  }
+
+  .ni-grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+  }
+
   .ni-card {
+    background: var(--ni-card);
+    border-radius: .7rem;
+    padding: 1rem;
+    box-shadow: var(--ni-shadow);
+  }
+
+  .ni-card-label {
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ni-text-muted);
+  }
+
+  .ni-card-number {
+    margin: .35rem 0 0;
+    font: 800 2rem/1 'Manrope', sans-serif;
+    letter-spacing: -.02em;
+    color: var(--ni-text);
+  }
+
+  .ni-card-meta {
+    margin-top: .45rem;
+    font-size: .72rem;
+    color: var(--ni-text-muted);
+  }
+
+  .ni-layout {
+    margin-top: 1.3rem;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .ni-panel {
+    background: var(--ni-section);
+    border-radius: .7rem;
+    padding: 1rem;
+  }
+
+  .ni-heading {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin: 0 0 .9rem;
+    font: 700 1rem/1.1 'Manrope', sans-serif;
+    letter-spacing: -.01em;
+  }
+
+  .ni-heading::before {
+    content: "";
+    width: 2px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--ni-primary-container);
+  }
+
+  .ni-bars {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(18px, 1fr));
+    gap: .5rem;
+    align-items: end;
+    height: 210px;
+  }
+
+  .ni-bar {
+    border-radius: .38rem .38rem 0 0;
+    background: var(--ni-card-2);
+    overflow: hidden;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .ni-card-body {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-  }
-  .ni-card .icon { font-size: 1.8rem; line-height: 1; }
-  .ni-card .num  { font-size: 2.2rem; font-weight: 700; color: #0e86c7; line-height: 1; }
-  .ni-card .lbl  { font-size: .8rem; color: #64748b; margin-top: .4rem; text-align: center; }
-
-  /* ── Cards: dark ── */
-  @media (prefers-color-scheme: dark) {
-    .ni-card {
-      background: #1e293b;
-      border-color: #334155;
-      box-shadow: 0 1px 3px rgba(0,0,0,.3);
-    }
-    .ni-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.4); }
-    .ni-card .lbl  { color: #94a3b8; }
+    justify-content: flex-end;
   }
 
-  /* Unfold injeta a classe "dark" no <html> quando o usuário escolhe dark mode */
-  .dark .ni-card {
-    background: #1e293b;
-    border-color: #334155;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3);
-  }
-  .dark .ni-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.4); }
-  .dark .ni-card .lbl  { color: #94a3b8; }
-  .dark .ni-card .num  { color: #38bdf8; }
+  .ni-bar-online { background: var(--ni-tertiary-soft); }
+  .ni-bar-maint { background: #d5e3fc; }
+  .ni-bar-offline { background: #ffc6bf; }
 
-  /* ── Seções ── */
-  .ni-section { margin-bottom: 2rem; }
-  .ni-section h2 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #0369a1;
-    border-bottom: 2px solid #bae6fd;
-    padding-bottom: .4rem;
-    margin-bottom: 1rem;
-  }
-  .dark .ni-section h2 {
-    color: #38bdf8;
-    border-bottom-color: #1e3a5f;
+  .ni-table-wrap {
+    margin-top: 1rem;
+    overflow-x: auto;
+    border-radius: .7rem;
+    background: var(--ni-card);
   }
 
-  /* ── Tabela de pings: light ── */
-  .ni-ping-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-  .ni-ping-table th {
-    background: #0369a1;
-    color: #fff;
-    padding: .5rem .8rem;
+  .ni-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 680px;
+  }
+
+  .ni-table th {
+    background: var(--ni-card-2);
     text-align: left;
+    padding: .7rem .75rem;
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ni-text-muted);
   }
-  .ni-ping-table td {
-    padding: .45rem .8rem;
-    border-bottom: 1px solid #e2e8f0;
+
+  .ni-table td {
+    padding: .68rem .75rem;
+    font-size: .82rem;
   }
-  .ni-ping-table tr:nth-child(even) td { background: #f0f9ff; }
 
-  /* ── Tabela de pings: dark ── */
-  .dark .ni-ping-table th { background: #0c4a6e; }
-  .dark .ni-ping-table td { border-bottom-color: #334155; color: #cbd5e1; }
-  .dark .ni-ping-table tr:nth-child(even) td { background: #1e293b; }
-  .dark .ni-ping-table tr:nth-child(odd) td  { background: #0f172a; }
+  .ni-table tbody tr:nth-child(odd) { background: var(--ni-card); }
+  .ni-table tbody tr:nth-child(even) { background: var(--ni-section); }
 
-  .badge-online  { color: #16a34a; font-weight: 600; }
-  .badge-offline { color: #dc2626; font-weight: 600; }
-  .dark .badge-online  { color: #4ade80; }
-  .dark .badge-offline { color: #f87171; }
-
-  /* ── Botões de ação ── */
-  .ni-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 2rem; }
-  .ni-btn {
-    display: inline-flex; align-items: center; gap: .4rem;
-    background: #0e86c7; color: #fff; text-decoration: none;
-    padding: .55rem 1.1rem; border-radius: 6px; font-size: .88rem;
-    transition: background .15s;
+  .ni-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .33rem;
+    font-size: .69rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
   }
-  .ni-btn:hover { background: #0369a1; color: #fff; }
-  .ni-btn.secondary { background: #475569; }
-  .ni-btn.secondary:hover { background: #334155; }
 
-  /* ── Input ping manual: dark ── */
-  .dark #ping-ip {
-    background: #1e293b;
-    border-color: #475569;
-    color: #e2e8f0;
+  .ni-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+  }
+
+  .ni-badge-online { color: var(--ni-tertiary); }
+  .ni-badge-online::before { background: var(--ni-tertiary-soft); }
+
+  .ni-badge-offline { color: var(--ni-error); }
+  .ni-badge-offline::before { background: var(--ni-error); }
+
+  .ni-manual {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: .7rem;
+    background: linear-gradient(140deg, var(--ni-primary), var(--ni-primary-container));
+    color: #fff;
+  }
+
+  .ni-manual-form {
+    margin-top: .8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    align-items: center;
+  }
+
+  .ni-input {
+    border: none;
+    outline: none;
+    border-radius: .35rem;
+    padding: .56rem .7rem;
+    width: 220px;
+    color: #171c1f;
+    font-weight: 500;
+  }
+
+  .ni-button {
+    border: none;
+    background: #fff;
+    color: var(--ni-primary);
+    border-radius: .35rem;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .56rem .9rem;
+    cursor: pointer;
+  }
+
+  .ni-result {
+    font-size: .79rem;
+    font-weight: 600;
+    min-height: 1rem;
+  }
+
+  @media (max-width: 1024px) {
+    .ni-layout { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .ni-board { padding: 1rem; }
+    .ni-display { font-size: 1.9rem; }
+    .ni-input { width: 100%; }
+    .ni-button { width: 100%; }
   }
 </style>
 
-<!-- Ações rápidas -->
-<div class="ni-actions">
-  <a href="/inventory/relatorio/geral/" class="ni-btn">📄 Relatório Geral PDF</a>
-  <a href="/admin/inventory/historicoping/" class="ni-btn secondary">📊 Histórico de Pings</a>
-  <a href="/admin/inventory/switch/" class="ni-btn secondary">🖧 Switches</a>
-  <a href="/admin/inventory/roteador/" class="ni-btn secondary">📡 Roteadores</a>
-</div>
+<section class="ni-board">
+  <p class="ni-kicker">Operational Overview</p>
+  <h2 class="ni-display">Technical Dashboard</h2>
+  <p class="ni-muted">Visibilidade central de ativos, disponibilidade e saúde de conectividade.</p>
 
-<!-- Cards de totais -->
-<div class="ni-section">
-  <h2>📦 Inventário por Tipo</h2>
-  <div class="ni-grid">
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🖧</div><div class="num">{{ totais.switches }}</div></div>
-      <div class="lbl">Switches</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">📡</div><div class="num">{{ totais.roteadores }}</div></div>
-      <div class="lbl">Roteadores</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">📶</div><div class="num">{{ totais.access_points }}</div></div>
-      <div class="lbl">Access Points</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">💻</div><div class="num">{{ totais.computadores }}</div></div>
-      <div class="lbl">Computadores</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">📧</div><div class="num">{{ totais.emails }}</div></div>
-      <div class="lbl">E-mails</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🌐</div><div class="num">{{ totais.sites }}</div></div>
-      <div class="lbl">Sites</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🔗</div><div class="num">{{ totais.subredes }}</div></div>
-      <div class="lbl">Subredes</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🖥️</div><div class="num">{{ total_dispositivos }}</div></div>
-      <div class="lbl">Dispositivos de Rede</div>
-    </div>
+  <div class="ni-actions">
+    <a href="/inventory/relatorio/geral/" class="ni-btn ni-btn-primary">Relatorio PDF</a>
+    <a href="/admin/inventory/historicoping/" class="ni-btn ni-btn-secondary">Historico de Pings</a>
+    <a href="/admin/inventory/switch/" class="ni-btn ni-btn-secondary">Switches</a>
+    <a href="/admin/inventory/roteador/" class="ni-btn ni-btn-secondary">Roteadores</a>
   </div>
-</div>
 
-<!-- Subredes e IPs -->
-<div class="ni-section">
-  <h2>🔗 Endereçamento IP</h2>
-  <div class="ni-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">📋</div><div class="num">{{ totais.subredes }}</div></div>
-      <div class="lbl">Subredes cadastradas</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🔢</div><div class="num">{{ total_ips_subredes|default:"0" }}</div></div>
-      <div class="lbl">Total de IPs nas subredes</div>
-    </div>
+  <div class="ni-grid-cards">
+    <article class="ni-card">
+      <p class="ni-card-label">Switches</p>
+      <p class="ni-card-number">{{ totais.switches }}</p>
+      <p class="ni-card-meta">Camada de acesso</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Roteadores</p>
+      <p class="ni-card-number">{{ totais.roteadores }}</p>
+      <p class="ni-card-meta">Core e borda</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Access Points</p>
+      <p class="ni-card-number">{{ totais.access_points }}</p>
+      <p class="ni-card-meta">Cobertura wireless</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Computadores</p>
+      <p class="ni-card-number">{{ totais.computadores }}</p>
+      <p class="ni-card-meta">Endpoints ativos</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">E-mails</p>
+      <p class="ni-card-number">{{ totais.emails }}</p>
+      <p class="ni-card-meta">Contas institucionais</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Sites</p>
+      <p class="ni-card-number">{{ totais.sites }}</p>
+      <p class="ni-card-meta">Servicos publicados</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Subredes</p>
+      <p class="ni-card-number">{{ totais.subredes }}</p>
+      <p class="ni-card-meta">Segmentacao IP</p>
+    </article>
+    <article class="ni-card">
+      <p class="ni-card-label">Dispositivos</p>
+      <p class="ni-card-number">{{ total_dispositivos }}</p>
+      <p class="ni-card-meta">Total em operacao</p>
+    </article>
   </div>
-</div>
 
-<!-- Pings de hoje -->
-<div class="ni-section">
-  <h2>📶 Pings de Hoje</h2>
-  <div class="ni-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin-bottom: 1rem;">
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🟢</div><div class="num" style="color:#16a34a;">{{ online_hoje }}</div></div>
-      <div class="lbl">Respostas online</div>
-    </div>
-    <div class="ni-card">
-      <div class="ni-card-body"><div class="icon">🔴</div><div class="num" style="color:#dc2626;">{{ offline_hoje }}</div></div>
-      <div class="lbl">Falhas de ping</div>
-    </div>
+  <div class="ni-layout">
+    <section class="ni-panel">
+      <h3 class="ni-heading">Network Topology Status</h3>
+      <div class="ni-bars" aria-hidden="true">
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 88%;"></div>
+          <div class="ni-bar-maint" style="height: 7%;"></div>
+          <div class="ni-bar-offline" style="height: 5%;"></div>
+        </div>
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 76%;"></div>
+          <div class="ni-bar-maint" style="height: 14%;"></div>
+          <div class="ni-bar-offline" style="height: 10%;"></div>
+        </div>
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 94%;"></div>
+          <div class="ni-bar-maint" style="height: 4%;"></div>
+          <div class="ni-bar-offline" style="height: 2%;"></div>
+        </div>
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 82%;"></div>
+          <div class="ni-bar-maint" style="height: 11%;"></div>
+          <div class="ni-bar-offline" style="height: 7%;"></div>
+        </div>
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 91%;"></div>
+          <div class="ni-bar-maint" style="height: 6%;"></div>
+          <div class="ni-bar-offline" style="height: 3%;"></div>
+        </div>
+        <div class="ni-bar">
+          <div class="ni-bar-online" style="height: 85%;"></div>
+          <div class="ni-bar-maint" style="height: 9%;"></div>
+          <div class="ni-bar-offline" style="height: 6%;"></div>
+        </div>
+      </div>
+
+      <div class="ni-table-wrap">
+        {% if ultimos_pings %}
+        <table class="ni-table">
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Tipo</th>
+              <th>Status</th>
+              <th>Latencia</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ping in ultimos_pings %}
+            <tr>
+              <td><code>{{ ping.ip }}</code></td>
+              <td>{{ ping.dispositivo_tipo }}</td>
+              <td>
+                {% if ping.status == "ONLINE" %}
+                <span class="ni-badge ni-badge-online">Online</span>
+                {% else %}
+                <span class="ni-badge ni-badge-offline">Offline</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if ping.latencia_ms %}
+                {{ ping.latencia_ms|floatformat:1 }} ms
+                {% else %}
+                -
+                {% endif %}
+              </td>
+              <td>{{ ping.timestamp|date:"d/m/Y H:i:s" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div style="padding: 1rem; color: var(--ni-text-muted);">
+          Nenhum ping registrado ainda. Use a acao de ping no admin para popular os dados.
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="ni-panel">
+      <h3 class="ni-heading">Runtime Snapshot</h3>
+      <article class="ni-card" style="margin-bottom: .8rem;">
+        <p class="ni-card-label">Pings Online Hoje</p>
+        <p class="ni-card-number" style="color: var(--ni-tertiary);">{{ online_hoje }}</p>
+        <p class="ni-card-meta">Respostas com sucesso</p>
+      </article>
+      <article class="ni-card" style="margin-bottom: .8rem;">
+        <p class="ni-card-label">Pings Offline Hoje</p>
+        <p class="ni-card-number" style="color: var(--ni-error);">{{ offline_hoje }}</p>
+        <p class="ni-card-meta">Falhas de conectividade</p>
+      </article>
+      <article class="ni-card">
+        <p class="ni-card-label">Total de IPs em Subredes</p>
+        <p class="ni-card-number">{{ total_ips_subredes|default:"0" }}</p>
+        <p class="ni-card-meta">Capacidade de enderecamento</p>
+      </article>
+
+      <div class="ni-manual">
+        <p class="ni-kicker" style="color: #d3e4ff;">Ping Manual</p>
+        <div class="ni-manual-form">
+          <input type="text" id="ping-ip" class="ni-input" placeholder="Ex.: 192.168.1.1">
+          <button type="button" onclick="executarPing()" class="ni-button">Executar Ping</button>
+          <span id="ping-resultado" class="ni-result"></span>
+        </div>
+      </div>
+    </section>
   </div>
-</div>
-
-<!-- Últimos pings -->
-<div class="ni-section">
-  <h2>🕐 Últimos 10 Registros de Ping</h2>
-  {% if ultimos_pings %}
-  <table class="ni-ping-table">
-    <thead>
-      <tr>
-        <th>IP</th>
-        <th>Tipo</th>
-        <th>Status</th>
-        <th>Latência</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ping in ultimos_pings %}
-      <tr>
-        <td><code>{{ ping.ip }}</code></td>
-        <td>{{ ping.dispositivo_tipo }}</td>
-        <td>
-          {% if ping.status == "ONLINE" %}
-            <span class="badge-online">🟢 Online</span>
-          {% else %}
-            <span class="badge-offline">🔴 Offline</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if ping.latencia_ms %}
-            {{ ping.latencia_ms|floatformat:1 }} ms
-          {% else %}
-            —
-          {% endif %}
-        </td>
-        <td>{{ ping.timestamp|date:"d/m/Y H:i:s" }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p style="color: #6b7280; font-style: italic;">
-    Nenhum ping registrado ainda. Selecione dispositivos no admin e use a ação "Pingar dispositivos".
-  </p>
-  {% endif %}
-</div>
-
-<!-- Ping manual -->
-<div class="ni-section">
-  <h2>🔔 Ping Manual</h2>
-  <div style="display: flex; gap: .5rem; align-items: center; flex-wrap: wrap;">
-    <input type="text" id="ping-ip" placeholder="Ex: 192.168.1.1"
-      style="padding: .5rem .8rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .9rem; width: 200px; transition: background .2s, color .2s;">
-    <button onclick="executarPing()"
-      style="background:#0e86c7; color:#fff; border:none; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-size:.9rem;">
-      Pingar
-    </button>
-    <span id="ping-resultado" style="font-size:.9rem;"></span>
-  </div>
-</div>
+</section>
 
 <script>
 function executarPing() {
   const ip = document.getElementById('ping-ip').value.trim();
   const res = document.getElementById('ping-resultado');
-  if (!ip) { res.textContent = 'Informe um IP.'; return; }
-  res.textContent = '⏳ Pingando...';
+  if (!ip) { res.textContent = 'Informe um IP valido.'; return; }
+  res.textContent = 'Executando ping...';
   fetch('/inventory/ping/' + ip + '/')
     .then(r => r.json())
     .then(d => {
       if (d.status === 'ONLINE') {
-        res.innerHTML = '<span style="color:green">🟢 Online — ' + d.latencia_ms + ' ms</span>';
+        res.innerHTML = '<span style="color:#7eeec1">Online ' + d.latencia_ms + ' ms</span>';
       } else {
-        res.innerHTML = '<span style="color:red">🔴 Offline</span>';
+        res.innerHTML = '<span style="color:#ffc6bf">Offline</span>';
       }
     })
     .catch(() => { res.textContent = 'Erro ao executar ping.'; });

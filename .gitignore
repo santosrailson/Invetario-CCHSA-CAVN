@@ -11,8 +11,12 @@ build/
 # Django
 *.log
 local_settings.py
+*.sqlite3
 db.sqlite3
 data/db.sqlite3
+
+# Uploads de mídia (gerados em runtime)
+media/
 
 # Ambiente virtual
 .env
@@ -25,6 +29,7 @@ venv/
 .idea/
 *.swp
 *.swo
+*~
 
 # macOS
 .DS_Store
@@ -35,5 +40,22 @@ venv/
 .claude/
 
 # Arquivos estáticos coletados (gerados pelo collectstatic)
+# NÃO ignore static/ se contiver arquivos estáticos próprios do projeto
 staticfiles/
-static/
+
+# Cache de ferramentas de teste/lint
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Arquivos temporários/backup
+*.bak
+*.tmp
+*.temp
+
+# Scripts temporários de correção (ajuste conforme necessário)
+corrigir_models.py
+testar_*.py
+verificar_*.py
